@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-tema="escuro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Byakugan · Monitor de Bases | Dados & Insights</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- BYAKUGAN_VERSAO_4 -->
+<style>
+:root{
+  --bg:#060816;--bg2:#0b1030;--card:rgba(255,255,255,.045);--card2:rgba(255,255,255,.07);
+  --line:rgba(255,255,255,.09);--txt:#e9ecff;--mut:#8c94bd;--pri:#7c5cff;--pri2:#a78bfa;
+  --cy:#22d3ee;--ok:#34d399;--bad:#fb7185;--warn:#fbbf24;--mag:#f472b6;
+  --sombra:0 20px 60px -20px rgba(0,0,0,.6);--raio:20px;
+  --font:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;--mono:'JetBrains Mono',Consolas,monospace;
+}
+[data-tema="claro"]{
+  --bg:#f3f4fb;--bg2:#e9e8ff;--card:rgba(255,255,255,.8);--card2:#fff;--line:rgba(30,27,75,.10);
+  --txt:#16163a;--mut:#62668c;--warn:#d97706;--bad:#e11d48;--sombra:0 18px 50px -24px rgba(60,50,160,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);overflow-x:hidden;transition:background .4s,color .4s}
+button,input,select{font-family:inherit}
+.oculto{display:none!important}
+.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.aurora i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.55;animation:flutua 18s ease-in-out infinite alternate}
+.aurora i:nth-child(1){width:620px;height:620px;background:#5b3cff;top:-180px;left:-120px}
+.aurora i:nth-child(2){width:520px;height:520px;background:#0ea5e9;bottom:-200px;right:-120px;animation-delay:-6s}
+.aurora i:nth-child(3){width:380px;height:380px;background:#db2777;top:40%;left:55%;opacity:.28;animation-delay:-11s}
+[data-tema="claro"] .aurora i{opacity:.25}
+@keyframes flutua{to{transform:translate(80px,60px) scale(1.15)}}
+.grade{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:46px 46px;mask-image:radial-gradient(ellipse at center,#000 10%,transparent 70%);opacity:.6}
+.btn-tema{position:fixed;top:18px;right:20px;z-index:50;border:1px solid var(--line);background:var(--card);backdrop-filter:blur(14px);
+  color:var(--txt);padding:9px 16px;border-radius:999px;font-weight:600;font-size:13px;cursor:pointer;box-shadow:var(--sombra)}
+#tela-login{position:relative;z-index:2;min-height:100vh;display:grid;place-items:center;padding:24px}
+.login-card{width:min(420px,100%);border-radius:30px;overflow:hidden;background:var(--card);backdrop-filter:blur(22px);
+  border:1px solid var(--line);box-shadow:0 40px 120px -30px rgba(76,48,255,.55);animation:sobe .7s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes sobe{from{opacity:0;transform:translateY(30px) scale(.97)}}
+.login-topo{position:relative;padding:38px 30px 64px;text-align:center;
+  background:radial-gradient(circle at 20% 0%,#8b5cf6 0%,transparent 55%),radial-gradient(circle at 100% 100%,#0891b2 0%,transparent 55%),linear-gradient(135deg,#3b1fd6,#1b1060)}
+.login-topo::after{content:"";position:absolute;left:-5%;right:-5%;bottom:-38px;height:76px;border-radius:50% 50% 0 0/100% 100% 0 0}
+[data-tema="escuro"] .login-topo::after,[data-tema="escuro"] .login-corpo{background:#0d1129}
+[data-tema="claro"] .login-topo::after,[data-tema="claro"] .login-corpo{background:#fbfbff}
+.olho{width:74px;height:74px;margin:0 auto 14px;filter:drop-shadow(0 0 22px rgba(167,139,250,.9))}
+.olho .iris{transform-origin:24px 24px;animation:pisca 6s infinite}
+@keyframes pisca{0%,46%,54%,100%{transform:scaleY(1)}50%{transform:scaleY(.08)}}
+.login-topo h1{color:#fff;font-size:30px;font-weight:800}
+.login-topo p{color:#d7d2ff;font-size:13px;margin-top:6px}
+.pilulas{display:flex;justify-content:center;gap:7px;margin-top:16px}
+.pilulas span{width:30px;height:5px;border-radius:9px;background:#c4b5fd}
+.pilulas span:nth-child(2){background:#fff}.pilulas span:nth-child(3){background:#2dd4bf}.pilulas span:nth-child(4){background:#fbbf24}
+.login-corpo{padding:26px 32px 28px;position:relative;z-index:1}
+.aviso{font-size:13px;padding:11px 14px;border-radius:12px;margin-bottom:16px;text-align:center}
+.aviso.info{background:rgba(251,191,36,.12);color:#f59e0b;border:1px solid rgba(251,191,36,.35)}
+.aviso.erro{background:rgba(251,113,133,.12);color:var(--bad);border:1px solid rgba(251,113,133,.35)}
+.campo{margin-bottom:16px}
+.campo label{display:block;font-size:12.5px;font-weight:700;color:var(--mut);margin-bottom:7px}
+.input{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:14px;padding:0 14px;background:var(--card);transition:.25s}
+.input:focus-within{border-color:var(--pri);box-shadow:0 0 0 4px rgba(124,92,255,.18)}
+.input input{flex:1;border:0;outline:0;background:transparent;color:var(--txt);font-size:14.5px;padding:14px 0}
+.input svg{width:18px;height:18px;color:var(--pri2);flex-shrink:0}
+.olhinho{background:none;border:0;cursor:pointer;color:var(--mut)}
+.btn-entrar{width:100%;border:0;border-radius:14px;padding:15px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;margin-top:6px;
+  background:linear-gradient(120deg,#6d28d9,#7c5cff 40%,#06b6d4);background-size:200% 100%;transition:.4s;box-shadow:0 12px 30px -10px rgba(124,92,255,.8)}
+.btn-entrar:hover{background-position:100% 0}
+.login-rodape{text-align:center;font-size:12px;color:var(--mut);margin-top:18px}
+.treme{animation:treme .45s}
+@keyframes treme{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+#app{position:relative;z-index:2;max-width:1500px;margin:0 auto;padding:18px 26px 40px}
+.topo{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px;border-radius:22px;background:var(--card);
+  border:1px solid var(--line);backdrop-filter:blur(18px);position:sticky;top:12px;z-index:30;box-shadow:var(--sombra);margin-right:150px}
+.marca{display:flex;align-items:center;gap:12px}
+.marca svg{width:42px;height:42px}
+.marca b{font-size:17px;font-weight:800;display:block}
+.marca small{font-size:11.5px;color:var(--mut);letter-spacing:.4px;text-transform:uppercase}
+.esp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--card2);white-space:nowrap}
+.pulso{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulsoV 1.8s infinite}
+.pulso.ruim{background:var(--bad);animation:pulsoR 1.8s infinite}
+@keyframes pulsoV{0%{box-shadow:0 0 0 0 rgba(52,211,153,.7)}70%,100%{box-shadow:0 0 0 10px transparent}}
+@keyframes pulsoR{0%{box-shadow:0 0 0 0 rgba(251,113,133,.7)}70%,100%{box-shadow:0 0 0 10px transparent}}
+.usuario{display:flex;align-items:center;gap:10px}
+.avatar{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;background:linear-gradient(135deg,#7c5cff,#06b6d4)}
+.btn-sair{border:1px solid var(--line);background:transparent;color:var(--txt);padding:8px 14px;border-radius:12px;cursor:pointer;font-weight:600;font-size:12.5px}
+.btn-sair:hover{border-color:var(--bad);color:var(--bad)}
+.faixa{margin-top:18px;border-radius:18px;padding:14px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+  background:linear-gradient(90deg,rgba(251,113,133,.16),rgba(251,113,133,.04));border:1px solid rgba(251,113,133,.35)}
+.faixa.boa{background:linear-gradient(90deg,rgba(52,211,153,.16),rgba(52,211,153,.04));border-color:rgba(52,211,153,.35)}
+.faixa .ico{font-size:22px}.faixa b{font-size:14.5px}
+.faixa .lista{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.faixa .lista span{font-family:var(--mono);font-size:11.5px;padding:4px 9px;border-radius:8px;background:rgba(251,113,133,.15);color:var(--bad);cursor:pointer}
+.detector{margin-top:18px;border-radius:24px;padding:20px 22px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,rgba(251,191,36,.10),rgba(244,114,182,.08) 50%,rgba(124,92,255,.08));
+  border:1px solid rgba(251,191,36,.35);box-shadow:var(--sombra)}
+.detector .scan{position:absolute;left:0;right:0;height:80px;top:-80px;background:linear-gradient(180deg,transparent,rgba(251,191,36,.10),transparent);animation:scan 4s linear infinite;pointer-events:none}
+@keyframes scan{to{top:100%}}
+.det-cab{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.det-cab .ic{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:22px;background:rgba(251,191,36,.18);box-shadow:0 0 30px -6px rgba(251,191,36,.7)}
+.det-cab h2{font-size:18px;font-weight:800}
+.det-cab p{font-size:12.5px;color:var(--mut)}
+.det-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;position:relative}
+.det-item{padding:16px;border-radius:18px;background:var(--card);border:1px solid var(--line);cursor:pointer;transition:.25s}
+.det-item:hover{transform:translateY(-3px);border-color:var(--cor)}
+.det-item .l1{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.det-item .nome{font-family:var(--mono);font-weight:700;font-size:13px;word-break:break-all}
+.delta{font-family:var(--mono);font-weight:800;font-size:13px;padding:5px 10px;border-radius:10px;color:#fff;background:var(--cor);white-space:nowrap;box-shadow:0 0 18px -4px var(--cor)}
+.duelo{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-top:14px}
+.duelo small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);font-weight:700}
+.duelo b{font-family:var(--mono);font-size:22px;font-weight:800}
+.duelo .vs{font-size:11px;font-weight:800;color:var(--mut);padding:6px 8px;border-radius:8px;border:1px dashed var(--line)}
+.duelo .dir{text-align:right}
+.hero{display:grid;grid-template-columns:300px 1fr 300px;gap:18px;margin-top:18px}
+.painel{background:var(--card);border:1px solid var(--line);border-radius:var(--raio);padding:20px;backdrop-filter:blur(18px);box-shadow:var(--sombra);position:relative;overflow:hidden}
+.painel h3{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--mut);font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.painel h3 small{text-transform:none;letter-spacing:0;font-weight:600}
+.gauge{display:grid;place-items:center;position:relative;margin:6px 0 10px}
+.gauge svg{width:220px;height:220px;transform:rotate(-90deg)}
+.gauge .centro{position:absolute;text-align:center}
+.gauge .centro b{font-size:46px;font-weight:800;letter-spacing:-2px;display:block;line-height:1}
+.gauge .centro small{font-size:12px;color:var(--mut);font-weight:600}
+.legenda-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.legenda-g div{padding:10px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-size:11px;color:var(--mut);font-weight:600}
+.legenda-g b{display:block;font-size:22px;color:var(--txt);font-weight:800}
+.radar-box{display:grid;place-items:center}
+#radar{width:100%;max-width:470px;aspect-ratio:1}
+.varredura{transform-origin:0 0;animation:gira 6s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.ponto{cursor:pointer}
+.ponto.ruim{animation:alerta 1.6s infinite}
+@keyframes alerta{50%{opacity:.35}}
+.halo{fill:none;stroke-width:2;stroke-dasharray:3 3;transform-box:fill-box;transform-origin:center;animation:gira 4s linear infinite;pointer-events:none}
+.radar-leg{display:flex;gap:14px;justify-content:center;font-size:11.5px;color:var(--mut);margin-top:4px;flex-wrap:wrap}
+.radar-leg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.kpis{display:flex;flex-direction:column;gap:10px}
+.kpi{padding:13px 18px;border-radius:16px;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;gap:14px;cursor:pointer;transition:.25s}
+.kpi:hover{transform:translateX(-4px);border-color:var(--pri2)}
+.kpi .ic{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.kpi b{font-size:24px;font-weight:800;display:block;line-height:1.1}
+.kpi small{font-size:12px;color:var(--mut);font-weight:600}
+.kpi.antiga b{font-size:13.5px;font-family:var(--mono);word-break:break-all}
+.linha2{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-top:18px}
+.bat{position:relative;height:150px;margin-top:4px}
+.bat .area{position:absolute;left:0;right:0;top:0;height:112px;display:flex;align-items:flex-end;gap:2px;
+  border-bottom:1px solid var(--line);background:repeating-linear-gradient(0deg,transparent 0 27px,var(--line) 27px 28px)}
+.bat .slot{flex:1;height:100%;display:flex;flex-direction:column-reverse;gap:1px;position:relative;border-radius:4px 4px 0 0}
+.bat .slot.tem{cursor:pointer}
+.bat .slot:hover{background:rgba(167,139,250,.08)}
+.bat .slot.futuro{background:repeating-linear-gradient(135deg,transparent 0 4px,rgba(255,255,255,.025) 4px 8px)}
+[data-tema="claro"] .bat .slot.futuro{background:repeating-linear-gradient(135deg,transparent 0 4px,rgba(30,27,75,.04) 4px 8px)}
+.bat .seg{width:100%;border-radius:3px;transform-origin:bottom;animation:cresce .8s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes cresce{from{transform:scaleY(0)}}
+.bat .seg.ok{background:linear-gradient(180deg,#6ee7b7,#10b981)}
+.bat .seg.anom{background:linear-gradient(180deg,#fde68a,#f59e0b);box-shadow:0 0 10px rgba(251,191,36,.7)}
+.bat .num{position:absolute;left:50%;transform:translateX(-50%);font-size:9.5px;font-weight:800;font-family:var(--mono);color:var(--txt);white-space:nowrap}
+.bat .eixo{position:absolute;left:0;right:0;top:118px;height:14px;font-size:10px;color:var(--mut);font-family:var(--mono)}
+.bat .eixo span{position:absolute;transform:translateX(-50%)}
+.bat .agora{position:absolute;top:-6px;height:118px;width:2px;background:var(--warn);box-shadow:0 0 12px var(--warn);border-radius:2px;pointer-events:none}
+.bat .agora span{position:absolute;top:-2px;left:6px;font-size:10px;font-weight:800;color:var(--warn);white-space:nowrap;background:var(--bg);padding:1px 6px;border-radius:6px;border:1px solid rgba(251,191,36,.4)}
+.bat .agora.esq span{left:auto;right:6px}
+.bat-leg{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin-top:2px}
+.bat-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.bat-leg b{color:var(--txt)}
+.saude{display:grid;grid-template-columns:repeat(14,1fr);gap:6px;height:112px;align-items:end;margin-top:4px;border-bottom:1px solid var(--line);position:relative}
+.saude .meta95{position:absolute;left:0;right:0;border-top:1px dashed rgba(52,211,153,.55);pointer-events:none}
+.saude .meta95 span{position:absolute;right:0;top:-15px;font-size:9.5px;font-family:var(--mono);color:var(--ok)}
+.saude .col{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.saude .bar{width:100%;max-width:26px;border-radius:7px 7px 3px 3px;transform-origin:bottom;animation:cresce .9s cubic-bezier(.2,.9,.3,1.2) both}
+.saude .vazia{width:100%;max-width:26px;border-radius:7px 7px 3px 3px;border:1px dashed var(--line)}
+.saude .pct{font-size:9.5px;font-weight:800;font-family:var(--mono);margin-bottom:3px;white-space:nowrap}
+.saude .hoje .bar{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--pri2)}
+.saude-dias{display:grid;grid-template-columns:repeat(14,1fr);gap:6px;margin-top:6px}
+.saude-dias span{text-align:center;font-size:9.5px;color:var(--mut);font-family:var(--mono)}
+.saude-dias span.hoje{color:var(--pri2);font-weight:800}
+.saude-res{display:flex;gap:10px;margin-top:10px;font-size:11.5px;color:var(--mut);flex-wrap:wrap}
+.saude-res b{color:var(--txt);font-family:var(--mono)}
+.controles{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:26px 0 14px}
+.busca{flex:1;min-width:240px;display:flex;align-items:center;gap:10px;padding:0 16px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.busca input{flex:1;border:0;outline:0;background:transparent;color:var(--txt);padding:13px 0;font-size:14px}
+.grupo{display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--card);border:1px solid var(--line);flex-wrap:wrap}
+.grupo button{border:0;background:transparent;color:var(--mut);padding:8px 13px;border-radius:10px;font-weight:700;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.grupo button.ativo{background:linear-gradient(135deg,#7c5cff,#5b3cff);color:#fff;box-shadow:0 6px 16px -6px rgba(124,92,255,.9)}
+select.sel{border:1px solid var(--line);background:var(--card);color:var(--txt);padding:12px 14px;border-radius:14px;font-weight:600;font-size:12.5px;outline:0}
+select.sel option{background:var(--bg2)}
+.btn-acao{border:1px solid var(--line);background:var(--card);color:var(--txt);padding:12px 16px;border-radius:14px;font-weight:700;font-size:12.5px;cursor:pointer}
+.btn-acao:hover{border-color:var(--cy);color:var(--cy)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.tab{padding:18px;border-radius:18px;background:var(--card);border:1px solid var(--line);position:relative;overflow:hidden;transition:.3s;animation:entra .5s both;cursor:pointer}
+@keyframes entra{from{opacity:0;transform:translateY(14px)}}
+.tab:hover{transform:translateY(-4px);border-color:var(--pri2);box-shadow:var(--sombra)}
+.tab::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cor)}
+.tab.anom{border:1.5px solid var(--acor);box-shadow:0 0 0 1px var(--acor),0 18px 50px -20px var(--acor);
+  background:radial-gradient(circle at 100% 0%,color-mix(in srgb,var(--acor) 22%,transparent),transparent 55%),var(--card)}
+.tab.anom::after{content:"";position:absolute;inset:-1px;border-radius:18px;pointer-events:none;
+  background:linear-gradient(110deg,transparent 30%,color-mix(in srgb,var(--acor) 30%,transparent) 50%,transparent 70%);background-size:250% 100%;animation:brilho 3.2s linear infinite}
+@keyframes brilho{from{background-position:150% 0}to{background-position:-100% 0}}
+.cab{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.nome{font-family:var(--mono);font-weight:600;font-size:13.5px;word-break:break-all}
+.esquema{font-size:11px;color:var(--mut);margin-top:3px;font-family:var(--mono)}
+.status{font-size:10.5px;font-weight:800;padding:5px 10px;border-radius:999px;letter-spacing:.5px;white-space:nowrap;color:var(--cor);background:color-mix(in srgb,var(--cor) 15%,transparent)}
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.meta div{font-size:11px;color:var(--mut);font-weight:600}
+.meta b{display:block;font-size:13.5px;color:var(--txt);margin-top:2px;font-weight:700}
+.ader{margin-top:12px;border-radius:14px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--sc) 40%,transparent);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--sc) 14%,transparent),transparent 70%)}
+.ader .topo2{display:flex;align-items:center;gap:10px}
+.sinal{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;position:relative;
+  background:color-mix(in srgb,var(--sc) 22%,transparent);color:var(--sc);font-size:15px;font-weight:900}
+.sinal.vivo::after{content:"";position:absolute;inset:-3px;border-radius:12px;border:2px solid var(--sc);animation:onda 1.6s ease-out infinite}
+@keyframes onda{from{opacity:.9;transform:scale(.9)}to{opacity:0;transform:scale(1.35)}}
+.ader .tt{flex:1;min-width:0}
+.ader .tt b{display:block;font-size:12px;font-weight:800;color:var(--sc);letter-spacing:.3px}
+.ader .tt small{display:block;font-size:11px;color:var(--mut);font-weight:600;margin-top:1px}
+.ader .pct{font-family:var(--mono);font-size:13px;font-weight:800;color:var(--sc);white-space:nowrap}
+.regua{position:relative;height:8px;border-radius:8px;margin-top:9px;
+  background:linear-gradient(90deg,rgba(251,113,133,.35) 0 20%,rgba(52,211,153,.35) 20% 80%,rgba(251,191,36,.35) 80% 100%)}
+.regua i{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--sc);border:2px solid var(--bg);transform:translate(-50%,-50%);box-shadow:0 0 10px var(--sc)}
+.regua-leg{display:flex;justify-content:space-between;font-size:9.5px;color:var(--mut);font-family:var(--mono);margin-top:3px}
+.mini{width:100%;height:34px;display:block;margin-top:8px}
+.ultimabar{animation:alerta 1.4s infinite}
+.frescor{margin-top:12px;margin-right:72px;height:6px;border-radius:6px;background:var(--line);overflow:hidden}
+.frescor i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--cor),color-mix(in srgb,var(--cor) 50%,#fff))}
+.selo{position:absolute;right:14px;bottom:12px;font-size:10px;font-weight:800;letter-spacing:1px;padding:3px 8px;border-radius:6px;background:var(--card2);color:var(--mut);border:1px solid var(--line)}
+.vazio{text-align:center;padding:60px;color:var(--mut);grid-column:1/-1}
+.modal-fundo{position:fixed;inset:0;z-index:80;background:rgba(3,5,18,.7);backdrop-filter:blur(8px);display:grid;place-items:center;padding:20px;opacity:0;pointer-events:none;transition:.25s}
+.modal-fundo.ver{opacity:1;pointer-events:auto}
+.modal{width:min(760px,100%);max-height:92vh;overflow:auto;border-radius:26px;background:var(--bg);border:1px solid var(--line);box-shadow:0 40px 120px -20px rgba(0,0,0,.8);padding:26px}
+.modal .mc{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.modal h2{font-family:var(--mono);font-size:19px;word-break:break-all;margin-top:10px}
+.modal .fechar{border:1px solid var(--line);background:var(--card);color:var(--txt);width:38px;height:38px;border-radius:12px;cursor:pointer;font-size:16px;flex-shrink:0}
+.modal .kv{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.modal .kv div{padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.modal .kv b{display:block;font-family:var(--mono);font-size:16px;color:var(--txt);margin-top:4px;text-transform:none;letter-spacing:0}
+.modal .grafico{padding:14px;border-radius:18px;background:var(--card);border:1px solid var(--line)}
+.modal .grafico svg{width:100%;height:220px;display:block}
+.modal .leg{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin-top:8px}
+.modal .leg i{display:inline-block;width:12px;height:8px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.modal .sql{margin-top:14px;font-family:var(--mono);font-size:12px;padding:12px 14px;border-radius:12px;background:#050714;color:#a5b4fc;border:1px solid var(--line);cursor:copy}
+.diag{font-size:13px;font-weight:600;line-height:1.45;padding:12px 14px;border-radius:14px;margin-top:14px;color:var(--sc);
+  background:color-mix(in srgb,var(--sc) 12%,transparent);border:1px solid color-mix(in srgb,var(--sc) 40%,transparent)}
+.diag b{font-family:var(--mono)}
+.tooltip{position:fixed;z-index:99;pointer-events:none;padding:10px 13px;border-radius:12px;background:#0b0f2a;color:#e9ecff;font-size:12px;
+  border:1px solid rgba(167,139,250,.4);box-shadow:0 14px 40px rgba(0,0,0,.5);opacity:0;transition:opacity .15s;max-width:340px}
+.tooltip b{font-family:var(--mono)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);opacity:0;background:linear-gradient(135deg,#7c5cff,#06b6d4);color:#fff;
+  padding:12px 20px;border-radius:14px;font-weight:700;font-size:13px;z-index:99;transition:.35s}
+.toast.ver{transform:translateX(-50%) translateY(0);opacity:1}
+.rodape{text-align:center;color:var(--mut);font-size:11.5px;margin-top:34px}
+@media(max-width:1180px){.hero{grid-template-columns:1fr 1fr}.radar-box{grid-column:1/-1;order:-1}.linha2{grid-template-columns:1fr}}
+@media(max-width:720px){.hero{grid-template-columns:1fr}.topo{margin-right:0;margin-top:50px}#app{padding:12px}.modal .kv{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="gLogo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c4b5fd"/><stop offset=".5" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+</defs></svg>
+<div class="aurora"><i></i><i></i><i></i></div>
+<div class="grade"></div>
+<button class="btn-tema" id="btnTema" onclick="alternarTema()">☀️ Tema claro</button>
+
+<section id="tela-login">
+  <div class="login-card" id="cardLogin">
+    <div class="login-topo">
+      <svg class="olho" viewBox="0 0 48 48">
+        <path d="M24 3 42 13.5v21L24 45 6 34.5v-21z" fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="2"/>
+        <g class="iris"><path d="M10 24s5.5-8.5 14-8.5S38 24 38 24s-5.5 8.5-14 8.5S10 24 10 24z" fill="rgba(255,255,255,.12)" stroke="#fff" stroke-width="2"/>
+        <circle cx="24" cy="24" r="5" fill="#fff"/><circle cx="24" cy="24" r="2" fill="#5b3cff"/></g>
+      </svg>
+      <h1>Dados &amp; Insights</h1>
+      <p>Byakugan · Monitor de Atualização das Bases</p>
+      <div class="pilulas"><span></span><span></span><span></span><span></span></div>
+    </div>
+    <div class="login-corpo">
+      <div id="avisoLogin" class="aviso oculto"></div>
+      <form onsubmit="entrar(event)" autocomplete="off">
+        <div class="campo"><label>Login de rede</label>
+          <div class="input"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.4 0-9 2.2-9 5v3h18v-3c0-2.8-4.6-5-9-5z"/></svg>
+          <input id="inLogin" placeholder="ex.: vi37114368" autofocus></div></div>
+        <div class="campo"><label>Senha</label>
+          <div class="input"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 9V7A5 5 0 0 0 7 7v2H5v13h14V9h-2zm-8-2a3 3 0 0 1 6 0v2H9V7zm4 10.7V20h-2v-2.3a2 2 0 1 1 2 0z"/></svg>
+          <input id="inSenha" type="password" placeholder="Senha da equipe MIS">
+          <button type="button" class="olhinho" onclick="verSenha()">👁</button></div></div>
+        <button class="btn-entrar" type="submit">Entrar</button>
+      </form>
+      <div class="login-rodape">Acesso restrito à equipe MIS</div>
+    </div>
+  </div>
+</section>
+
+<main id="app" class="oculto">
+  <header class="topo">
+    <div class="marca">
+      <svg viewBox="0 0 48 48"><path d="M24 3 42 13.5v21L24 45 6 34.5v-21z" fill="none" stroke="url(#gLogo)" stroke-width="2.6"/>
+        <path d="M11 24s5-8 13-8 13 8 13 8-5 8-13 8-13-8-13-8z" fill="none" stroke="url(#gLogo)" stroke-width="2.2"/><circle cx="24" cy="24" r="4.4" fill="url(#gLogo)"/></svg>
+      <div><b>Dados &amp; Insights</b><small>Byakugan · Monitor de Bases · v4</small></div>
+    </div>
+    <span class="chip"><span class="pulso" id="pulsoGerado"></span><span id="txtGerado">—</span></span>
+    <span class="chip" id="chipRecarga">🔄 —</span>
+    <div class="esp"></div>
+    <div class="usuario">
+      <div class="avatar" id="avatar">VI</div>
+      <div><b style="font-size:13px" id="nomeUser">—</b><br><small style="color:var(--mut);font-size:11px">equipe MIS</small></div>
+      <button class="btn-sair" onclick="sair()">Sair</button>
+    </div>
+  </header>
+
+  <div id="faixa"></div>
+  <section id="detector"></section>
+
+  <section class="hero">
+    <div class="painel">
+      <h3>💠 Saúde das bases</h3>
+      <div class="gauge">
+        <svg viewBox="0 0 220 220"><defs><linearGradient id="gGauge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+          <circle cx="110" cy="110" r="92" fill="none" stroke="var(--line)" stroke-width="16"/>
+          <circle id="arcoGauge" cx="110" cy="110" r="92" fill="none" stroke="url(#gGauge)" stroke-width="16" stroke-linecap="round" stroke-dasharray="578" stroke-dashoffset="578" style="transition:stroke-dashoffset 1.4s cubic-bezier(.2,.9,.3,1)"/></svg>
+        <div class="centro"><b id="pctSaude">0%</b><small>atualizadas hoje</small></div>
+      </div>
+      <div class="legenda-g">
+        <div><b id="gOk">0</b>em dia</div>
+        <div><b id="gBad">0</b>sem atualizar</div>
+        <div><b id="gAnom" style="color:var(--warn)">0</b>fora do padrão</div>
+      </div>
+    </div>
+    <div class="painel radar-box">
+      <h3 style="align-self:flex-start;width:100%">👁️ Radar Byakugan <span class="esp"></span><small>quanto mais longe do centro, mais tempo sem carga</small></h3>
+      <svg id="radar" viewBox="-200 -200 400 400"></svg>
+      <div class="radar-leg">
+        <span><i style="background:var(--ok)"></i>Atualizada hoje</span>
+        <span><i style="background:var(--bad)"></i>Desatualizada</span>
+        <span><i style="background:var(--mut)"></i>Sem informação</span>
+        <span><i style="border:2px dashed var(--warn)"></i>Volume fora do padrão</span>
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="kpi" onclick="filtrarStatus('TODAS')"><div class="ic" style="background:rgba(124,92,255,.18)">🗄️</div><div><b id="kTotal">0</b><small>Bases monitoradas</small></div></div>
+      <div class="kpi" onclick="filtrarStatus('ATUALIZADA')"><div class="ic" style="background:rgba(52,211,153,.16)">✅</div><div><b id="kOk" style="color:var(--ok)">0</b><small>Atualizadas hoje</small></div></div>
+      <div class="kpi" onclick="filtrarStatus('DESATUALIZADA')"><div class="ic" style="background:rgba(251,113,133,.16)">⛔</div><div><b id="kBad" style="color:var(--bad)">0</b><small>Não atualizaram</small></div></div>
+      <div class="kpi" onclick="filtrarStatus('ANOMALIA')"><div class="ic" style="background:rgba(251,191,36,.16)">📉</div><div><b id="kAnom" style="color:var(--warn)">0</b><small>Volume fora do padrão</small></div></div>
+      <div class="kpi antiga" onclick="filtrarStatus('DESATUALIZADA')"><div class="ic" style="background:rgba(251,191,36,.16)">🕰️</div><div><b id="kAntiga">—</b><small id="kAntigaH">Base mais atrasada</small></div></div>
+    </div>
+  </section>
+
+  <section class="linha2">
+    <div class="painel">
+      <h3>💓 Batimento das cargas de hoje <span class="esp"></span><small id="qtdHoje"></small></h3>
+      <div class="bat" id="bat"></div>
+      <div class="bat-leg" id="batLeg"></div>
+    </div>
+    <div class="painel">
+      <h3>📈 Saúde nos últimos 14 dias <span class="esp"></span><small>% de bases atualizadas</small></h3>
+      <div class="saude" id="saude"></div>
+      <div class="saude-dias" id="saudeDias"></div>
+      <div class="saude-res" id="saudeRes"></div>
+    </div>
+  </section>
+
+  <section class="controles">
+    <div class="busca">🔎<input id="inBusca" placeholder="Buscar tabela ou schema..." oninput="estado.busca=this.value;renderLista()"></div>
+    <div class="grupo" id="grpStatus">
+      <button data-v="TODAS" class="ativo">Todas</button>
+      <button data-v="ATUALIZADA">✅ Atualizadas</button>
+      <button data-v="DESATUALIZADA">⛔ Desatualizadas</button>
+      <button data-v="ANOMALIA">📉 Fora do padrão</button>
+      <button data-v="SEM_INFO">❔ Sem info</button>
+    </div>
+    <select class="sel" id="selOrdem" onchange="estado.ordem=this.value;renderLista()">
+      <option value="alerta">Alertas primeiro</option>
+      <option value="atraso">Mais atrasadas primeiro</option>
+      <option value="desvio">Maior desvio de volume</option>
+      <option value="recente">Carga mais recente</option>
+      <option value="nome">Nome (A–Z)</option>
+    </select>
+    <button class="btn-acao" onclick="exportarCSV()">⬇ Exportar CSV</button>
+  </section>
+
+  <section class="grid" id="lista"></section>
+  <div class="rodape">Dados &amp; Insights · MIS — <span id="rodapeExec"></span></div>
+</main>
+
+<div class="modal-fundo" id="modalFundo" onclick="if(event.target===this)fecharRaioX()"><div class="modal" id="modal"></div></div>
+<div class="tooltip" id="tip"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* DADOS — o notebook substitui o bloco entre os marcadores (abaixo é DEMO) */
+const DADOS = /*__DADOS_INICIO__*/{"gerado_em": "2026-11-09 11:17:27", "catalogo": "dbw_ctg_prd_001", "schemas": ["amil360_dw_view", "sbx_bu_callcenter"], "demo": false, "tabelas": [{"schema": "sbx_bu_callcenter", "tabela": "hugme_attachment", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 09:01:24", "operacao": "MERGE", "linhas": 74399, "horas": 2.3, "media_linhas": 59352, "var_pct": 25.4, "anomalia": null, "dp_linhas": 29670, "serie": [74316, 74327, 74340, 74351, 74320, 35, 74345, 74349, 74365, 74375, 74389, 74397, 0, 74399]}, {"schema": "sbx_bu_callcenter", "tabela": "hugme_customer", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 09:00:32", "operacao": "MERGE", "linhas": 47872, "horas": 2.3, "media_linhas": 46069, "var_pct": 3.9, "anomalia": null, "dp_linhas": 8710, "serie": [47756, 47798, 47803, 47809, 47811, 47808, 47805, 47820, 47831, 47847, 47855, 47866, 47823, 47872]}, {"schema": "sbx_bu_callcenter", "tabela": "pesquisa_nps", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 08:29:54", "operacao": "MERGE", "linhas": 121797, "horas": 2.8, "media_linhas": 440620, "var_pct": -72.4, "anomalia": null, "dp_linhas": 137866, "serie": [466250, 492626, 517710, 541029, 559338, 562692, 563587, 569547, 600882, 629759, 657689, 679119, 683046, 121797]}, {"schema": "sbx_bu_callcenter", "tabela": "operadora_agupamento", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 07:52:45", "operacao": "MERGE", "linhas": 9, "horas": 3.4, "media_linhas": 9, "var_pct": 0.0, "anomalia": null, "dp_linhas": 0, "serie": [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]}, {"schema": "sbx_bu_callcenter", "tabela": "nps_transacional_colab", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 09:42:29", "operacao": "MERGE", "linhas": 575556, "horas": 1.6, "media_linhas": 360290, "var_pct": 59.7, "anomalia": null, "dp_linhas": 254659, "serie": [506686, 84830, 587343, 375661, 83742, 436721, 689666, 689666, 119929, 119929, 119929, 119929, 574017, 575556]}, {"schema": "sbx_bu_callcenter", "tabela": "wrpt", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:09:54", "operacao": "MERGE", "linhas": 953956, "horas": 6.1, "media_linhas": 962975, "var_pct": -0.9, "anomalia": null, "dp_linhas": 102780, "serie": [1065337, 1042681, 1024161, 1005851, 993220, 890319, 868838, 888639, 1167633, 1037677, 1072771, 1081815, 974663, 953956]}, {"schema": "sbx_bu_callcenter", "tabela": "nps_relacional_agencias", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 07:51:07", "operacao": "MERGE", "linhas": 1224, "horas": 3.4, "media_linhas": 1166, "var_pct": 5.0, "anomalia": null, "dp_linhas": 37, "serie": [1183, 1183, 1183, 1195, 1195, 1199, 1199, 1206, 1206, 1214, 1214, 1214, 1214, 1224]}, {"schema": "sbx_bu_callcenter", "tabela": "servico_agupamento", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 07:52:29", "operacao": "MERGE", "linhas": 58, "horas": 3.4, "media_linhas": 58, "var_pct": 0.0, "anomalia": null, "dp_linhas": 0, "serie": [58, 58, 58, 58, 58, 58, 58, 58, 58, 58, 58, 58, 58, 58]}, {"schema": "sbx_bu_callcenter", "tabela": "aqm_colaboradores_historico", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:15:35", "operacao": "MERGE", "linhas": 3831, "horas": 6.0, "media_linhas": 14448, "var_pct": -73.5, "anomalia": null, "dp_linhas": 4701, "serie": [15114, 15994, 16876, 17729, 18557, 18557, 19190, 19651, 19439, 20678, 21513, 22360, 23065, 3831]}, {"schema": "sbx_bu_callcenter", "tabela": "qualidade_categorias", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 09:23:16", "operacao": "MERGE", "linhas": 4379, "horas": 1.9, "media_linhas": 199324, "var_pct": -97.8, "anomalia": null, "dp_linhas": 853336, "serie": [35945, 434, 25691, 25888, 9630, 0, 3565, 20220, 25722, 0, 24584, 30798, 2969, 4379]}, {"schema": "sbx_bu_callcenter", "tabela": "wfe_colaborador", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:31:44", "operacao": "CREATE OR REPLACE TABLE AS SELECT", "linhas": 3066765, "horas": 5.8, "media_linhas": 2216683, "var_pct": 38.3, "anomalia": null, "dp_linhas": 1296462, "serie": [0, 3062170, 2880084, 157578, 3044444, 3062173, 3066762, 3066762, 0, 3066762, 2880087, 161616, 3048643, 3066765]}, {"schema": "sbx_bu_callcenter", "tabela": "hsplit", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:18:27", "operacao": "MERGE", "linhas": 303183, "horas": 6.0, "media_linhas": 316992, "var_pct": -4.4, "anomalia": null, "dp_linhas": 268374, "serie": [559399, 559399, 37872, 37872, 37872, 37872, 75744, 710887, 1268215, 151503, 189423, 189423, 189423, 303183]}, {"schema": "sbx_bu_callcenter", "tabela": "rca_chamadas", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:18:36", "operacao": "MERGE", "linhas": 683, "horas": 6.0, "media_linhas": 658, "var_pct": 3.7, "anomalia": null, "dp_linhas": 125, "serie": [708, 587, 563, 522, 402, 402, 457, 637, 759, 760, 761, 637, 520, 683]}, {"schema": "sbx_bu_callcenter", "tabela": "aqm_itens_e_respostas", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:15:18", "operacao": "MERGE", "linhas": 8111918, "horas": 6.0, "media_linhas": 4903744, "var_pct": 65.4, "anomalia": null, "dp_linhas": 2121488, "serie": [5538646, 5851925, 5852209, 6174798, 6219292, 6523498, 2989262, 3033820, 6977012, 7404631, 7740338, 8032104, 6222909, 8111918]}, {"schema": "sbx_bu_callcenter", "tabela": "ech_base", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:11:36", "operacao": "MERGE", "linhas": 518159, "horas": 6.1, "media_linhas": 641312, "var_pct": -19.2, "anomalia": null, "dp_linhas": 130610, "serie": [659931, 645711, 631391, 621337, 607816, 538136, 525767, 533590, 779245, 904777, 590944, 688809, 709084, 518159]}, {"schema": "sbx_bu_callcenter", "tabela": "departamento360", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 08:28:57", "operacao": "CREATE OR REPLACE TABLE AS SELECT", "linhas": 124, "horas": 2.8, "media_linhas": 124, "var_pct": 0.0, "anomalia": null, "dp_linhas": 0, "serie": [124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124, 124]}, {"schema": "sbx_bu_callcenter", "tabela": "hugme_interaction_detail", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 09:02:30", "operacao": "MERGE", "linhas": 1306510, "horas": 2.2, "media_linhas": 957429, "var_pct": 36.5, "anomalia": null, "dp_linhas": 576077, "serie": [1305096, 1305274, 1305425, 3250, 3270, 3317, 3349, 1305666, 1305897, 1306132, 1306309, 1306457, 1306467, 1306510]}, {"schema": "sbx_bu_callcenter", "tabela": "speech_transcricao_chamadas", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 10:04:25", "operacao": "MERGE", "linhas": 1634, "horas": 1.2, "media_linhas": 16244, "var_pct": -89.9, "anomalia": null, "dp_linhas": 11954, "serie": [4543, 1208, 21930, 4558, 1422, 3483, 31929, 0, 1422, 29375, 27968, 24561, 4964, 1634]}, {"schema": "sbx_bu_callcenter", "tabela": "qualidade_motivos", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 09:06:08", "operacao": "MERGE", "linhas": 1536143, "horas": 2.2, "media_linhas": 1454161, "var_pct": 5.6, "anomalia": null, "dp_linhas": 54262, "serie": [1477000, 1485033, 1485033, 1495867, 1496452, 1496452, 1497093, 1502010, 1515095, 1514766, 1528885, 1534934, 1535425, 1536143]}, {"schema": "sbx_bu_callcenter", "tabela": "speech_categorias", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 08:26:55", "operacao": "MERGE", "linhas": 6024, "horas": 2.8, "media_linhas": 55762, "var_pct": -89.2, "anomalia": null, "dp_linhas": 47443, "serie": [100936, 99707, 96131, 91474, 0, 96507, 5517, 13386, 120869, 110422, 106603, 94096, 18588, 6024]}, {"schema": "sbx_bu_callcenter", "tabela": "atendimento360", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 07:52:41", "operacao": "MERGE", "linhas": 132648, "horas": 3.4, "media_linhas": 83746, "var_pct": 58.4, "anomalia": null, "dp_linhas": 27133, "serie": [93215, 93215, 96674, 101467, 105865, 109900, 113760, 113760, 116603, 121058, 121058, 124829, 129055, 132648]}, {"schema": "sbx_bu_callcenter", "tabela": "hugme_user", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 09:01:54", "operacao": "MERGE", "linhas": 10, "horas": 2.3, "media_linhas": 27, "var_pct": -62.3, "anomalia": null, "dp_linhas": 38, "serie": [10, 11, 11, 10, 10, 9, 109, 9, 11, 13, 13, 11, 10, 10]}, {"schema": "sbx_bu_callcenter", "tabela": "aqm_feedback", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:16:07", "operacao": "MERGE", "linhas": 821, "horas": 6.0, "media_linhas": 56982, "var_pct": -98.6, "anomalia": null, "dp_linhas": 98213, "serie": [230135, 3006, 3369, 3563, 3775, 3806, 5353, 5368, 240384, 242148, 241707, 241729, 4041, 821]}, {"schema": "sbx_bu_callcenter", "tabela": "hagent", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:22:37", "operacao": "MERGE", "linhas": 2530622, "horas": 5.9, "media_linhas": 1250698, "var_pct": 102.3, "anomalia": null, "dp_linhas": 695565, "serie": [1512686, 1651765, 1786559, 1786559, 1786559, 1958053, 1746310, 1746310, 2089536, 2013149, 2360411, 2360411, 2360411, 2530622]}, {"schema": "sbx_bu_callcenter", "tabela": "hugme_interaction", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 09:01:02", "operacao": "MERGE", "linhas": 46122, "horas": 2.3, "media_linhas": 203965, "var_pct": -77.4, "anomalia": null, "dp_linhas": 118635, "serie": [265080, 265148, 265213, 45673, 45679, 45663, 45695, 265253, 265394, 265478, 265551, 265609, 265612, 46122]}, {"schema": "sbx_bu_callcenter", "tabela": "nps_relacional", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 07:39:40", "operacao": "MERGE", "linhas": 64871, "horas": 3.6, "media_linhas": 66210, "var_pct": -2.0, "anomalia": null, "dp_linhas": 15700, "serie": [62935, 62935, 62935, 62935, 62935, 62935, 62935, 64871, 64871, 64871, 64871, 64871, 64871, 64871]}, {"schema": "sbx_bu_callcenter", "tabela": "aqm_chamadas", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:12:28", "operacao": "MERGE", "linhas": 4652, "horas": 6.1, "media_linhas": 205838, "var_pct": -97.7, "anomalia": null, "dp_linhas": 258560, "serie": [24599, 24237, 672828, 694908, 0, 718455, 101552, 3439, 45525, 27346, 18, 25452, 22256, 4652]}, {"schema": "sbx_bu_callcenter", "tabela": "notas_monitorias", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 09:23:29", "operacao": "MERGE", "linhas": 926, "horas": 1.9, "media_linhas": 4341, "var_pct": -78.7, "anomalia": null, "dp_linhas": 1573, "serie": [4687, 4924, 4924, 5225, 5250, 5250, 5278, 5429, 5781, 5770, 5987, 6255, 6275, 926]}, {"schema": "sbx_bu_callcenter", "tabela": "base_fcr", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:24:16", "operacao": "MERGE", "linhas": 1361184, "horas": 5.9, "media_linhas": 905077, "var_pct": 50.4, "anomalia": null, "dp_linhas": 271230, "serie": [982382, 1028540, 1071715, 1112917, 1147761, 1155319, 1157585, 1155400, 1211623, 1258145, 1304619, 1348949, 1358315, 1361184]}, {"schema": "sbx_bu_callcenter", "tabela": "atd20_base_final", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 07:04:17", "operacao": "UPDATE", "linhas": 0, "horas": 4.2, "media_linhas": 3857658, "var_pct": -100.0, "anomalia": "ZERADA", "dp_linhas": 5455634, "serie": [11586395, 0, 0, 11606181, 0, 0, 11632697, 0, 0, 11632697, 0, 0, 11634160, 0]}, {"schema": "sbx_bu_callcenter", "tabela": "motivos_atendimento_speech", "camada": "OUTRAS", "status": "DESATUALIZADA", "ultima_carga": "2026-04-09 10:19:38", "operacao": "REPLACE TABLE AS SELECT", "linhas": 134, "horas": 5137.0, "media_linhas": 126, "var_pct": 6.7, "anomalia": null, "dp_linhas": 5, "serie": [121, 121, 124, 130, 132, 134]}, {"schema": "sbx_bu_callcenter", "tabela": "atendimento360bot", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 07:56:38", "operacao": "MERGE", "linhas": 272388, "horas": 3.3, "media_linhas": 142934, "var_pct": 90.6, "anomalia": null, "dp_linhas": 76645, "serie": [41422, 202758, 209604, 216499, 39790, 228760, 234105, 234105, 242663, 37751, 250798, 257776, 36075, 272388]}, {"schema": "sbx_bu_callcenter", "tabela": "qualidade_monitorias", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 09:03:42", "operacao": "MERGE", "linhas": 234398, "horas": 2.2, "media_linhas": 269643, "var_pct": -13.1, "anomalia": null, "dp_linhas": 257179, "serie": [175233, 183548, 183266, 194382, 195018, 195018, 195659, 200576, 213681, 213681, 924287, 233166, 233680, 234398]}, {"schema": "sbx_bu_callcenter", "tabela": "rca_salesforce", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:17:32", "operacao": "MERGE", "linhas": 231570, "horas": 6.0, "media_linhas": 219917, "var_pct": 5.3, "anomalia": null, "dp_linhas": 20649, "serie": [217565, 219403, 221050, 222653, 224133, 224375, 224464, 224618, 226017, 227607, 229444, 231193, 231465, 231570]}, {"schema": "sbx_bu_callcenter", "tabela": "aqm_monitorias", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:12:12", "operacao": "MERGE", "linhas": 1521, "horas": 6.1, "media_linhas": 14396, "var_pct": -89.4, "anomalia": null, "dp_linhas": 11426, "serie": [24586, 24227, 23312, 22075, 18, 23547, 1329, 3432, 30304, 27355, 25454, 22263, 4643, 1521]}, {"schema": "amil360_dw_view", "tabela": "fcrat_crm_atendimento", "camada": "OUTRAS", "status": "DESATUALIZADA", "ultima_carga": "2026-10-30 06:22:27", "operacao": null, "linhas": null, "horas": 244.9, "media_linhas": null, "var_pct": null, "anomalia": null, "dp_linhas": null, "serie": null}, {"schema": "sbx_bu_callcenter", "tabela": "speech_motivos_atendimento_detalhado", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 08:28:11", "operacao": "MERGE", "linhas": 13194, "horas": 2.8, "media_linhas": 651910, "var_pct": -98.0, "anomalia": null, "dp_linhas": 843848, "serie": [49696, 52559, 76301, 1995725, 57245, 60177, 61274, 62056, 64607, 67253, 69749, 72160, 73321, 13194]}, {"schema": "sbx_bu_callcenter", "tabela": "speech_motivos_atendimento", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 08:27:51", "operacao": "MERGE", "linhas": 440, "horas": 2.8, "media_linhas": 11875, "var_pct": -96.3, "anomalia": null, "dp_linhas": 22373, "serie": [1603, 1705, 2250, 2329, 1832, 1935, 1981, 2016, 2096, 2176, 2249, 2318, 2365, 440]}, {"schema": "sbx_bu_callcenter", "tabela": "speech_chamadas", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 08:27:24", "operacao": "MERGE", "linhas": 141251, "horas": 2.8, "media_linhas": 735213, "var_pct": -80.8, "anomalia": null, "dp_linhas": 539837, "serie": [1126577, 1167475, 1206816, 1243938, 76, 1282891, 1285450, 4839, 1340258, 1385330, 1427756, 1464578, 19566, 141251]}, {"schema": "sbx_bu_callcenter", "tabela": "atendimento360dexparaintencao", "camada": "OUTRAS", "status": "DESATUALIZADA", "ultima_carga": "2026-03-18 08:17:26", "operacao": "WRITE", "linhas": 5, "horas": 5667.0, "media_linhas": 23, "var_pct": -78.3, "anomalia": null, "dp_linhas": 25, "serie": [43, 1, 17, 5, 10, 54, 14, 0, 67, 2, 0, 63, 5]}, {"schema": "sbx_bu_callcenter", "tabela": "qualidade_feedback", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 09:24:06", "operacao": "MERGE", "linhas": 628, "horas": 1.9, "media_linhas": 2889, "var_pct": -78.3, "anomalia": null, "dp_linhas": 1086, "serie": [2801, 2967, 2967, 3167, 3243, 3249, 3286, 3377, 3503, 3503, 3645, 3788, 3824, 628]}, {"schema": "sbx_bu_callcenter", "tabela": "haglog", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:18:53", "operacao": "MERGE", "linhas": 10818, "horas": 6.0, "media_linhas": 107072, "var_pct": -89.9, "anomalia": null, "dp_linhas": 216294, "serie": [13001, 15390, 15416, 13161, 600114, 13909, 13599, 11061, 13704, 13961, 13754, 612068, 8406, 10818]}, {"schema": "sbx_bu_callcenter", "tabela": "nps_relacional_embaixadas", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 07:51:56", "operacao": "MERGE", "linhas": 2574, "horas": 3.4, "media_linhas": 2550, "var_pct": 0.9, "anomalia": null, "dp_linhas": 131, "serie": [2538, 2538, 2538, 3239, 2546, 2550, 2550, 2558, 2558, 2568, 2567, 2567, 2567, 2574]}, {"schema": "sbx_bu_callcenter", "tabela": "atendimento_sisamil", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 05:23:48", "operacao": "WRITE", "linhas": 294345, "horas": 5.9, "media_linhas": 639287, "var_pct": -54.0, "anomalia": null, "dp_linhas": 633106, "serie": [0, 1301810, 0, 1372349, 0, 1441223, 0, 1505796, 0, 1563232, 1287109, 288615, 0, 294345]}, {"schema": "sbx_bu_callcenter", "tabela": "nps_transacional_dnis", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 08:30:00", "operacao": "MERGE", "linhas": 649, "horas": 2.8, "media_linhas": 2354, "var_pct": -72.4, "anomalia": null, "dp_linhas": 740, "serie": [2504, 2627, 2751, 2871, 2977, 3030, 3062, 3129, 3241, 3367, 3490, 3597, 3649, 649]}, {"schema": "sbx_bu_callcenter", "tabela": "crossover", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 08:58:23", "operacao": "MERGE", "linhas": 555560, "horas": 2.3, "media_linhas": 310906, "var_pct": 78.7, "anomalia": null, "dp_linhas": 249886, "serie": [48781, 48930, 36969, 5400, 553217, 553217, 48682, 555276, 36701, 45305, 259866, 555565, 555560, 555560]}, {"schema": "sbx_bu_callcenter", "tabela": "hugme_tickets", "camada": "OUTRAS", "status": "ATUALIZADA", "ultima_carga": "2026-11-09 09:00:07", "operacao": "MERGE", "linhas": 21761, "horas": 2.3, "media_linhas": 46473, "var_pct": -53.2, "anomalia": null, "dp_linhas": 28543, "serie": [71834, 71848, 71824, 21663, 21665, 21664, 21661, 71883, 71891, 71922, 71934, 71924, 21756, 21761]}], "historico": [{"dia": "2026-11-05", "pct": 97.8}, {"dia": "2026-11-06", "pct": 91.5}, {"dia": "2026-11-09", "pct": 93.6}]}/*__DADOS_FIM__*/;
+
+/* ACESSO — equipe MIS, sem limite de sessão */
+const LOGINS_MIS = ["vi37114368","ro37110232","lu37107265","felipe.couto","ma37112881","jo37097320","ca37097345","ro37124183"];
+const NOMES = { "vi37114368":"Vinicius" };
+const HASH_SENHA = "f03a5f5f6ee198ca056209e06b9b697566c33f5ed359a4e638196e487545734b";
+const CHAVE_SESSAO = "di_byakugan_sessao";
+const RECARGA_MIN = 10;
+
+/* Regras de aderência de volume */
+const ADER_MIN_CARGAS = 5;
+const ADER_LIMITE_PCT = 50;
+const ADER_LIMITE_Z   = 3;
+const ADER_ATENCAO_PCT = 25;
+
+function sha256(a){function r(v,n){return(v>>>n)|(v<<(32-n))}var mp=Math.pow,mw=mp(2,32),i,j,res='',w=[],bl=a.length*8,h=[],k=[],pl=0,ic={};
+for(var c=2;pl<64;c++){if(!ic[c]){for(i=0;i<313;i+=c)ic[i]=c;h[pl]=(mp(c,.5)*mw)|0;k[pl++]=(mp(c,1/3)*mw)|0}}
+a+='\x80';while(a.length%64-56)a+='\x00';for(i=0;i<a.length;i++){j=a.charCodeAt(i);if(j>>8)return'';w[i>>2]|=j<<((3-i)%4)*8}
+w[w.length]=((bl/mw)|0);w[w.length]=bl;for(j=0;j<w.length;){var x=w.slice(j,j+=16),oh=h;h=h.slice(0,8);for(i=0;i<64;i++){var w15=x[i-15],w2=x[i-2],A=h[0],E=h[4],
+t1=h[7]+(r(E,6)^r(E,11)^r(E,25))+((E&h[5])^((~E)&h[6]))+k[i]+(x[i]=(i<16)?x[i]:(x[i-16]+(r(w15,7)^r(w15,18)^(w15>>>3))+x[i-7]+(r(w2,17)^r(w2,19)^(w2>>>10)))|0),
+t2=(r(A,2)^r(A,13)^r(A,22))+((A&h[1])^(A&h[2])^(h[1]&h[2]));h=[(t1+t2)|0].concat(h);h[4]=(h[4]+t1)|0}for(i=0;i<8;i++)h[i]=(h[i]+oh[i])|0}
+for(i=0;i<8;i++)for(j=3;j+1;j--){var b=(h[i]>>(j*8))&255;res+=((b<16)?0:'')+b.toString(16)}return res}
+
+function lerSessao(){try{const s=JSON.parse(localStorage.getItem(CHAVE_SESSAO));if(s&&LOGINS_MIS.includes(s.login))return s}catch(e){}return null}
+function aviso(txt,tipo){const a=document.getElementById('avisoLogin');a.textContent=txt;a.className='aviso '+tipo}
+function entrar(ev){
+  ev.preventDefault();
+  const login=document.getElementById('inLogin').value.trim().toLowerCase();
+  const senha=document.getElementById('inSenha').value;
+  if(!LOGINS_MIS.includes(login)||sha256(senha)!==HASH_SENHA){
+    aviso(!LOGINS_MIS.includes(login)?'Login sem acesso. Este painel é exclusivo da equipe MIS.':'Senha incorreta.','erro');
+    const c=document.getElementById('cardLogin');c.classList.remove('treme');void c.offsetWidth;c.classList.add('treme');return;
+  }
+  localStorage.setItem(CHAVE_SESSAO,JSON.stringify({login}));
+  abrirApp();
+}
+function sair(){localStorage.removeItem(CHAVE_SESSAO);document.getElementById('app').classList.add('oculto');
+  document.getElementById('tela-login').classList.remove('oculto');aviso('Você saiu do painel.','info');document.getElementById('inSenha').value=''}
+function verSenha(){const i=document.getElementById('inSenha');i.type=i.type==='password'?'text':'password'}
+
+function alternarTema(){const h=document.documentElement;h.dataset.tema=h.dataset.tema==='escuro'?'claro':'escuro';localStorage.setItem('di_tema',h.dataset.tema);rotuloTema();if(lerSessao())renderTudo()}
+function rotuloTema(){document.getElementById('btnTema').textContent=document.documentElement.dataset.tema==='escuro'?'☀️ Tema claro':'🌙 Tema escuro'}
+document.documentElement.dataset.tema=localStorage.getItem('di_tema')||'escuro';rotuloTema();
+
+const COR={ATUALIZADA:'var(--ok)',DESATUALIZADA:'var(--bad)',SEM_INFO:'var(--mut)'};
+const ROTULO={ATUALIZADA:'ATUALIZADA',DESATUALIZADA:'DESATUALIZADA',SEM_INFO:'SEM INFO'};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pData=s=>s?new Date(s.replace(' ','T')):null;
+const dd=n=>String(n).padStart(2,'0');
+const fmtData=s=>{const d=pData(s);return d?`${dd(d.getDate())}/${dd(d.getMonth()+1)} ${dd(d.getHours())}:${dd(d.getMinutes())}`:'—'};
+function fmtHoras(h){if(h==null)return'—';if(h<1)return`há ${Math.max(1,Math.round(h*60))} min`;if(h<48)return`há ${h.toFixed(1).replace('.',',')} h`;return`há ${Math.floor(h/24)} dias`}
+const fmtNum=n=>n==null?'—':Number(n).toLocaleString('pt-BR');
+const fmtCurto=n=>n==null?'—':n>=1e6?(n/1e6).toFixed(1).replace('.',',')+' mi':n>=1e3?(n/1e3).toFixed(1).replace('.',',')+' mil':String(Math.round(n));
+const fmtVar=v=>{if(v==null)return'—';const r=Math.round(v*10)/10;return(r>0?'+':'')+(r===0?0:r).toFixed(1).replace('.',',')+'%'};
+const escuro=()=>document.documentElement.dataset.tema==='escuro';
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('ver');setTimeout(()=>e.classList.remove('ver'),2200)}
+const tip=document.getElementById('tip');
+function mostrarTip(ev,html){tip.innerHTML=html;tip.style.opacity=1;tip.style.left=Math.min(ev.clientX+14,innerWidth-350)+'px';tip.style.top=(ev.clientY+14)+'px'}
+function esconderTip(){tip.style.opacity=0}
+
+/* ADERÊNCIA DE VOLUME */
+const ADER={
+  ACIMA:  {l:'VOLUME ACIMA DO PADRÃO', ic:'▲', c:'#fbbf24', alerta:true},
+  ABAIXO: {l:'VOLUME ABAIXO DO PADRÃO',ic:'▼', c:'#fb7185', alerta:true},
+  ZERADA: {l:'CARGA ZERADA',           ic:'∅', c:'#f472b6', alerta:true},
+  ATENCAO:{l:'VOLUME EM ATENÇÃO',      ic:'!', c:'#fcd34d', alerta:false},
+  OK:     {l:'VOLUME ADERENTE',        ic:'✓', c:'#34d399', alerta:false},
+  APREND: {l:'APRENDENDO O PADRÃO',    ic:'…', c:'#a78bfa', alerta:false},
+  SEM:    {l:'SEM MEDIÇÃO DE VOLUME',  ic:'?', c:'#8c94bd', alerta:false}
+};
+function avaliar(t){
+  if(t._av)return t._av;
+  const s=(t.serie||[]).filter(v=>v!=null);
+  const atual=t.linhas!=null?t.linhas:(s.length?s[s.length-1]:null);
+  const ant=s.slice(0,-1);
+  let media=t.media_linhas,dp=t.dp_linhas;
+  if(media==null&&ant.length){media=ant.reduce((a,b)=>a+b,0)/ant.length;dp=Math.sqrt(ant.reduce((a,b)=>a+(b-media)**2,0)/ant.length)}
+  const nBase=t.media_linhas!=null?Math.max(ant.length,ADER_MIN_CARGAS):ant.length;
+  let tipo,varp=null,z=null;
+  if(atual==null)tipo='SEM';
+  else if(nBase<ADER_MIN_CARGAS||!media)tipo='APREND';
+  else{
+    varp=(atual-media)/media*100;z=dp?Math.abs(atual-media)/dp:Infinity;
+    if(t.anomalia&&ADER[t.anomalia])tipo=t.anomalia;
+    else if(atual===0)tipo='ZERADA';
+    else if(Math.abs(varp)>=ADER_LIMITE_PCT&&z>=ADER_LIMITE_Z)tipo=varp>0?'ACIMA':'ABAIXO';
+    else if(Math.abs(varp)>=ADER_ATENCAO_PCT&&z>=2)tipo='ATENCAO';
+    else tipo='OK';
+  }
+  return t._av={tipo,atual,media,dp:dp||0,varp,z,nBase,cfg:ADER[tipo]};
+}
+const temAlerta=t=>avaliar(t).cfg.alerta;
+function textoAder(t){
+  const a=avaliar(t);
+  switch(a.tipo){
+    case'OK':return`${fmtNum(a.atual)} linhas · padrão ~${fmtCurto(a.media)}`;
+    case'ATENCAO':return`${fmtNum(a.atual)} linhas · ${fmtVar(a.varp)} vs ~${fmtCurto(a.media)}`;
+    case'ACIMA':return`${fmtNum(a.atual)} linhas · ${(a.atual/a.media).toFixed(1).replace('.',',')}× o normal (~${fmtCurto(a.media)})`;
+    case'ABAIXO':return`só ${fmtNum(a.atual)} linhas · esperado ~${fmtCurto(a.media)}`;
+    case'ZERADA':return`0 linhas · esperado ~${fmtCurto(a.media)}`;
+    case'APREND':return`${a.nBase} de ${ADER_MIN_CARGAS} cargas para formar o padrão`;
+    default:return'tabela sem histórico de carga (view ou não encontrada)';
+  }
+}
+function diagnostico(t){
+  const a=avaliar(t);
+  if(a.tipo==='ZERADA')return`A carga rodou mas <b>não trouxe nenhuma linha</b>. O normal seria ~<b>${fmtNum(Math.round(a.media))}</b>. Verifique a extração da origem.`;
+  if(a.tipo==='ABAIXO')return`Chegou só <b>${fmtNum(a.atual)}</b> linhas, quando o normal é ~<b>${fmtNum(Math.round(a.media))}</b> (${(a.atual/a.media*100).toFixed(1).replace('.',',')}% do esperado). Possível carga parcial.`;
+  if(a.tipo==='ACIMA')return`Chegou <b>${fmtNum(a.atual)}</b> linhas, <b>${(a.atual/a.media).toFixed(1).replace('.',',')}×</b> o normal (~${fmtNum(Math.round(a.media))}). Possível reprocessamento ou duplicidade.`;
+  if(a.tipo==='ATENCAO')return`Volume ${a.varp>0?'acima':'abaixo'} do habitual (${fmtVar(a.varp)}), mas ainda dentro da tolerância. Vale acompanhar.`;
+  if(a.tipo==='OK')return`Volume aderente: <b>${fmtNum(a.atual)}</b> linhas, dentro da faixa normal (~${fmtNum(Math.round(a.media))}).`;
+  return textoAder(t);
+}
+const posRegua=a=>a.varp==null?50:Math.max(2,Math.min(98,50+a.varp/2));
+function tipTabela(t){const a=avaliar(t);
+  return`<b>${esc(t.tabela)}</b><br><span style="color:${COR[t.status]}">● ${ROTULO[t.status]}</span> · ${fmtData(t.ultima_carga)}<br><span style="color:${a.cfg.c}">${a.cfg.ic} ${a.cfg.l}</span><br>${textoAder(t)}`}
+
+function pulsoSVG(t,W,H,detalhe){
+  const s=(t.serie||[]).map(v=>v??0),a=avaliar(t);
+  if(s.length<2)return`<svg viewBox="0 0 ${W} ${H}" class="${detalhe?'':'mini'}"><text x="${W/2}" y="${H/2+4}" text-anchor="middle" font-size="11" fill="var(--mut)">histórico de volume indisponível</text></svg>`;
+  const m=a.media,dp=a.dp||0;
+  const max=Math.max(...s,m?m+2*dp:0)*1.12||1;
+  const pb=detalhe?24:2,pl=detalhe?52:2,pr=2,pt=detalhe?10:2,ah=H-pb-pt,aw=W-pl-pr;
+  const y=v=>pt+ah-(v/max)*ah;
+  const n=s.length,gap=detalhe?6:3,bw=Math.max(2,(aw-gap*(n-1))/n);
+  const corUlt=a.cfg.c;
+  let g='';
+  if(detalhe){for(let i=0;i<=4;i++){const v=max*i/4,yy=y(v);g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${pl-6}" y="${yy+4}" text-anchor="end" font-size="10" fill="var(--mut)" font-family="JetBrains Mono">${fmtCurto(Math.round(v))}</text>`}}
+  if(m){const y1=y(Math.max(0,m-2*dp)),y2=y(m+2*dp);
+    g+=`<rect x="${pl}" y="${y2}" width="${aw}" height="${Math.max(1,y1-y2)}" fill="#34d399" opacity="${escuro()?.12:.16}" rx="3"/>`;
+    g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(m)}" y2="${y(m)}" stroke="#a78bfa" stroke-width="1.2" stroke-dasharray="4 3"/>`}
+  s.forEach((v,i)=>{const x=pl+i*(bw+gap),ult=i===n-1,hh=Math.max(v>0?2:0,pt+ah-y(v));
+    const fill=ult?corUlt:(escuro()?'rgba(167,139,250,.5)':'rgba(124,92,255,.42)');
+    g+=`<rect class="${ult&&a.cfg.alerta?'ultimabar':''}" x="${x}" y="${pt+ah-hh}" width="${bw}" height="${hh}" rx="${Math.min(3,bw/2)}" fill="${fill}"><title>${ult?'Última carga':'Carga '+(i+1)}: ${fmtNum(v)} linhas</title></rect>`;
+    if(ult&&v===0)g+=`<rect x="${x}" y="${pt+ah-3}" width="${bw}" height="3" rx="1.5" fill="${corUlt}" class="ultimabar"/>`;
+    if(detalhe)g+=`<text x="${x+bw/2}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="${ult?corUlt:'var(--mut)'}" font-family="JetBrains Mono" font-weight="${ult?700:400}">${ult?'última':'-'+(n-1-i)}</text>`;
+  });
+  return`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="${detalhe?'':'mini'}">${g}</svg>`;
+}
+
+const T=DADOS.tabelas;
+const estado={status:'TODAS',busca:'',ordem:'alerta'};
+
+function abrirApp(){
+  const s=lerSessao();if(!s)return;
+  document.getElementById('tela-login').classList.add('oculto');
+  document.getElementById('app').classList.remove('oculto');
+  const nome=NOMES[s.login]||s.login;
+  document.getElementById('nomeUser').textContent=nome;
+  document.getElementById('avatar').textContent=nome.replace(/[^a-zA-Z]/g,'').slice(0,2).toUpperCase();
+  renderTudo();iniciarRecarga();
+}
+
+function renderTudo(){
+  T.forEach(t=>delete t._av);
+  const ok=T.filter(t=>t.status==='ATUALIZADA'),bad=T.filter(t=>t.status==='DESATUALIZADA'),sem=T.filter(t=>t.status==='SEM_INFO');
+  const anom=T.filter(temAlerta).sort((a,b)=>Math.abs(avaliar(b).varp||0)-Math.abs(avaliar(a).varp||0));
+  const pct=T.length?ok.length/T.length*100:0;
+  const idadeMin=(Date.now()-pData(DADOS.gerado_em))/60000,parado=!DADOS.demo&&idadeMin>180;
+  document.getElementById('txtGerado').textContent=`Dados de ${fmtData(DADOS.gerado_em)}`+(DADOS.demo?' · DEMO':'')+(parado?` · ⚠ notebook não roda há ${Math.floor(idadeMin/60)}h`:'');
+  document.getElementById('pulsoGerado').classList.toggle('ruim',parado);
+  document.getElementById('rodapeExec').textContent=`dados gerados pelo notebook em ${fmtData(DADOS.gerado_em)} · a página relê o arquivo a cada ${RECARGA_MIN} min`;
+  const f=document.getElementById('faixa');
+  if(bad.length||sem.length){const l=[...bad].sort((a,b)=>b.horas-a.horas).concat(sem);
+    f.innerHTML=`<div class="faixa"><span class="ico">🚨</span><b>${l.length} base${l.length>1?'s':''} sem atualização hoje</b><div class="lista">${l.map(t=>`<span onclick="abrirRaioX('${esc(t.tabela)}')">${esc(t.tabela)} · ${fmtHoras(t.horas)}</span>`).join('')}</div></div>`}
+  else f.innerHTML=`<div class="faixa boa"><span class="ico">🟢</span><b>Todas as ${ok.length} bases atualizaram hoje.</b></div>`;
+  renderDetector(anom);
+  setTimeout(()=>document.getElementById('arcoGauge').style.strokeDashoffset=578*(1-pct/100),120);
+  animarNumero('pctSaude',pct,'%');
+  document.getElementById('gOk').textContent=ok.length;document.getElementById('gBad').textContent=bad.length+sem.length;document.getElementById('gAnom').textContent=anom.length;
+  animarNumero('kTotal',T.length);animarNumero('kOk',ok.length);animarNumero('kBad',bad.length);animarNumero('kAnom',anom.length);
+  const pior=[...bad].sort((a,b)=>b.horas-a.horas)[0];
+  document.getElementById('kAntiga').textContent=pior?pior.tabela:'Nenhuma 🎉';
+  document.getElementById('kAntigaH').textContent=pior?'Mais atrasada · '+fmtHoras(pior.horas):'Base mais atrasada';
+  renderRadar();renderBatimento();renderSaude();renderLista();
+}
+
+function renderDetector(anom){
+  const d=document.getElementById('detector');
+  if(!anom.length){d.innerHTML='';return}
+  d.innerHTML=`<div class="detector"><div class="scan"></div>
+    <div class="det-cab"><div class="ic">📡</div><div><h2>Detector de volume · ${anom.length} base${anom.length>1?'s':''} fora do padrão</h2>
+    <p>A última carga de cada base foi comparada com a média das cargas anteriores. Clique para abrir o Raio-X.</p></div></div>
+    <div class="det-lista">${anom.map(t=>{const a=avaliar(t);
+      return`<div class="det-item" style="--cor:${a.cfg.c}" onclick="abrirRaioX('${esc(t.tabela)}')">
+        <div class="l1"><span class="nome">${a.cfg.ic} ${esc(t.tabela)}</span><span class="delta">${a.tipo==='ZERADA'?'0 linhas':fmtVar(a.varp)}</span></div>
+        <div class="duelo"><div><small>Esperado</small><b>~${fmtCurto(a.media)}</b></div><span class="vs">VS</span><div class="dir"><small>Recebido</small><b style="color:${a.cfg.c}">${fmtCurto(a.atual)}</b></div></div>
+        ${pulsoSVG(t,300,34,false)}
+      </div>`}).join('')}</div></div>`;
+}
+
+function animarNumero(id,alvo,suf=''){const el=document.getElementById(id);const ini=performance.now();
+  (function p(t){const k=Math.min(1,(t-ini)/1100),v=alvo*(1-Math.pow(1-k,3));el.textContent=(suf==='%'?v.toFixed(0):Math.round(v))+suf;if(k<1)requestAnimationFrame(p)})(ini)}
+
+function raioPorHoras(t){
+  if(t.status==='SEM_INFO'||t.horas==null)return 182;
+  if(t.status==='ATUALIZADA')return 26+Math.min(t.horas,24)/24*58;
+  if(t.horas<=48)return 92+(t.horas-24)/24*36;
+  if(t.horas<=96)return 134+(t.horas-48)/48*30;
+  return 172;
+}
+function renderRadar(){
+  const s=document.getElementById('radar');
+  const lista=[...T].sort((a,b)=>a.tabela.localeCompare(b.tabela));
+  let h=`<defs><radialGradient id="gPupila"><stop offset="0" stop-color="#a78bfa" stop-opacity=".9"/><stop offset="1" stop-color="#7c5cff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="gVarre" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#22d3ee" stop-opacity="0"/><stop offset="1" stop-color="#22d3ee" stop-opacity=".45"/></linearGradient></defs>`;
+  [[84,'hoje'],[128,'1 dia'],[164,'2–4 dias'],[190,'+4 dias']].forEach(([r,l],i)=>{h+=`<circle r="${r}" fill="${i===0?'rgba(52,211,153,.05)':'none'}" stroke="var(--line)" stroke-width="1.2" ${i?'stroke-dasharray="3 5"':''}/><text x="4" y="${-r+12}" font-size="9" fill="var(--mut)" font-family="JetBrains Mono">${l}</text>`});
+  for(let a=0;a<360;a+=30){const rad=a*Math.PI/180;h+=`<line x2="${Math.cos(rad)*190}" y2="${Math.sin(rad)*190}" stroke="var(--line)" stroke-width=".6"/>`}
+  h+=`<g class="varredura"><path d="M0 0 L190 0 A190 190 0 0 0 ${190*Math.cos(-Math.PI/5)} ${190*Math.sin(-Math.PI/5)} Z" fill="url(#gVarre)"/></g><circle r="22" fill="url(#gPupila)"/><circle r="7" fill="#fff" opacity=".9"/>`;
+  lista.forEach((t,i)=>{const ang=(i/lista.length)*Math.PI*2-Math.PI/2,r=raioPorHoras(t),x=Math.cos(ang)*r,y=Math.sin(ang)*r,cor=COR[t.status];
+    h+=`<line x2="${x}" y2="${y}" stroke="${cor}" stroke-opacity=".12"/>`;
+    if(temAlerta(t))h+=`<circle class="halo" cx="${x}" cy="${y}" r="12" style="stroke:${avaliar(t).cfg.c}"/>`;
+    h+=`<circle class="ponto ${t.status==='DESATUALIZADA'?'ruim':''}" cx="${x}" cy="${y}" r="6" fill="${cor}" stroke="var(--bg)" stroke-width="2" data-i="${T.indexOf(t)}" style="filter:drop-shadow(0 0 6px ${cor})"/>`});
+  s.innerHTML=h;
+  s.querySelectorAll('.ponto').forEach(p=>{const t=T[p.dataset.i];p.onmousemove=e=>mostrarTip(e,tipTabela(t));p.onmouseleave=esconderTip;p.onclick=()=>abrirRaioX(t.tabela)});
+}
+
+/* BATIMENTO: 48 faixas de 30 min, sempre dentro da caixa */
+function renderBatimento(){
+  const box=document.getElementById('bat'),ref=pData(DADOS.gerado_em);
+  const diaRef=`${ref.getFullYear()}-${dd(ref.getMonth()+1)}-${dd(ref.getDate())}`;
+  const hoje=T.filter(t=>t.ultima_carga&&t.ultima_carga.slice(0,10)===diaRef).sort((a,b)=>pData(a.ultima_carga)-pData(b.ultima_carga));
+  const slots=Array.from({length:48},()=>[]);
+  hoje.forEach(t=>{const d=pData(t.ultima_carga);slots[Math.min(47,d.getHours()*2+(d.getMinutes()>=30?1:0))].push(t)});
+  const maxN=Math.max(1,...slots.map(s=>s.length));
+  const agoraSlot=ref.getHours()*2+(ref.getMinutes()>=30?1:0);
+  const H=112,gapSeg=1,hSeg=Math.min(14,(H-14-gapSeg*maxN)/maxN);
+  let h='<div class="area">';
+  slots.forEach((s,i)=>{
+    const ini=`${dd(Math.floor(i/2))}:${i%2?'30':'00'}`,fim=i%2?`${dd(Math.floor(i/2)+1)}:00`:`${dd(Math.floor(i/2))}:30`;
+    h+=`<div class="slot ${s.length?'tem':''} ${i>agoraSlot?'futuro':''}" data-i="${i}" data-r="${ini}–${fim}">`;
+    s.forEach((t,k)=>h+=`<div class="seg ${temAlerta(t)?'anom':'ok'}" style="height:${hSeg}px;animation-delay:${(i*12+k*25)}ms"></div>`);
+    if(s.length>1)h+=`<span class="num" style="bottom:${s.length*(hSeg+gapSeg)+2}px">${s.length}</span>`;
+    h+='</div>'});
+  h+='</div><div class="eixo">';
+  for(let hr=0;hr<=24;hr+=3)h+=`<span style="left:${hr/24*100}%">${dd(hr)}h</span>`;
+  h+='</div>';
+  const posAg=(ref.getHours()+ref.getMinutes()/60)/24*100;
+  h+=`<div class="agora ${posAg>80?'esq':''}" style="left:${posAg}%"><span>verificação ${dd(ref.getHours())}:${dd(ref.getMinutes())}</span></div>`;
+  box.innerHTML=h;
+  box.querySelectorAll('.slot.tem').forEach(el=>{const s=slots[el.dataset.i];
+    el.onmousemove=e=>mostrarTip(e,`<b>${el.dataset.r} · ${s.length} carga${s.length>1?'s':''}</b><br>`+s.map(t=>`<span style="color:${temAlerta(t)?'#fbbf24':'#6ee7b7'}">●</span> ${esc(t.tabela)} <span style="color:#8c94bd">${t.ultima_carga.slice(11,16)}</span>`).join('<br>'));
+    el.onmouseleave=esconderTip;el.onclick=()=>{if(s.length===1)abrirRaioX(s[0].tabela)}});
+  const pico=slots.reduce((b,s,i)=>s.length>slots[b].length?i:b,0);
+  const nAnom=hoje.filter(temAlerta).length;
+  document.getElementById('qtdHoje').textContent=`${hoje.length} cargas hoje`;
+  document.getElementById('batLeg').innerHTML=`<span><i style="background:#10b981"></i>Carga com volume normal</span><span><i style="background:#f59e0b"></i>Carga fora do padrão <b>(${nAnom})</b></span>`+
+    (hoje.length?`<span>Pico: <b>${dd(Math.floor(pico/2))}:${pico%2?'30':'00'}</b> (${slots[pico].length} cargas)</span><span>Primeira: <b>${hoje[0].ultima_carga.slice(11,16)}</b> · Última: <b>${hoje[hoje.length-1].ultima_carga.slice(11,16)}</b></span>`:'');
+}
+
+/* SAÚDE: 14 colunas fixas */
+function renderSaude(){
+  const box=document.getElementById('saude'),dias=document.getElementById('saudeDias'),res=document.getElementById('saudeRes');
+  const mapa={};(DADOS.historico||[]).forEach(x=>mapa[x.dia]=x.pct);
+  const ref=pData(DADOS.gerado_em),lista=[];
+  for(let i=13;i>=0;i--){const d=new Date(ref);d.setDate(d.getDate()-i);const k=`${d.getFullYear()}-${dd(d.getMonth()+1)}-${dd(d.getDate())}`;lista.push({k,d,pct:mapa[k]})}
+  const corPct=p=>p>=95?'#34d399':p>=85?'#fbbf24':'#fb7185';
+  const H=112,topo=16;
+  let h=`<div class="meta95" style="bottom:${(H-topo)*0.95}px"><span>meta 95%</span></div>`;
+  lista.forEach((x,i)=>{const hoje=i===13;
+    if(x.pct==null){h+=`<div class="col"><div class="vazia" style="height:${H-topo}px" title="sem verificação"></div></div>`;return}
+    const c=corPct(x.pct);
+    h+=`<div class="col ${hoje?'hoje':''}" data-t="${dd(x.d.getDate())}/${dd(x.d.getMonth()+1)} · ${x.pct.toFixed(1).replace('.',',')}% das bases atualizadas">
+      <span class="pct" style="color:${c}">${Math.round(x.pct)}%</span>
+      <div class="bar" style="height:${Math.max(3,(H-topo)*x.pct/100)}px;background:linear-gradient(180deg,${c},${c}44);animation-delay:${i*40}ms"></div></div>`});
+  box.innerHTML=h;
+  dias.innerHTML=lista.map((x,i)=>`<span class="${i===13?'hoje':''}">${i===13?'hoje':dd(x.d.getDate())}</span>`).join('');
+  box.querySelectorAll('.col[data-t]').forEach(e=>{e.onmousemove=ev=>mostrarTip(ev,e.dataset.t);e.onmouseleave=esconderTip});
+  const v=lista.filter(x=>x.pct!=null);
+  if(v.length){const med=v.reduce((a,b)=>a+b.pct,0)/v.length,pior=v.reduce((a,b)=>b.pct<a.pct?b:a),noAlvo=v.filter(x=>x.pct>=95).length;
+    res.innerHTML=`<span>Média: <b>${med.toFixed(1).replace('.',',')}%</b></span><span>Pior dia: <b>${dd(pior.d.getDate())}/${dd(pior.d.getMonth()+1)} (${Math.round(pior.pct)}%)</b></span><span>Dias na meta: <b>${noAlvo}/${v.length}</b></span>`}
+  else res.innerHTML='<span>O histórico aparece depois das primeiras execuções.</span>';
+}
+
+/* CARDS */
+function peso(t){return t.status==='DESATUALIZADA'?0:temAlerta(t)?1:t.status==='SEM_INFO'?2:avaliar(t).tipo==='ATENCAO'?3:4}
+function filtradas(){
+  const q=estado.busca.toLowerCase().trim();
+  let l=T.filter(t=>(estado.status==='TODAS'||(estado.status==='ANOMALIA'?temAlerta(t):t.status===estado.status))&&(!q||(t.tabela+' '+t.schema).toLowerCase().includes(q)));
+  const o=estado.ordem;
+  if(o==='alerta')l.sort((a,b)=>peso(a)-peso(b)||(b.horas??0)-(a.horas??0));
+  if(o==='atraso')l.sort((a,b)=>(b.horas??1e9)-(a.horas??1e9));
+  if(o==='desvio')l.sort((a,b)=>Math.abs(avaliar(b).varp??0)-Math.abs(avaliar(a).varp??0));
+  if(o==='recente')l.sort((a,b)=>(a.horas??1e9)-(b.horas??1e9));
+  if(o==='nome')l.sort((a,b)=>a.tabela.localeCompare(b.tabela));
+  return l;
+}
+function blocoAderencia(t){
+  const a=avaliar(t),c=a.cfg,vivo=c.alerta||a.tipo==='ATENCAO';
+  const regua=a.varp!=null?`<div class="regua"><i style="left:${posRegua(a)}%"></i></div><div class="regua-leg"><span>−100%</span><span>faixa aderente</span><span>+100%</span></div>`:'';
+  return`<div class="ader" style="--sc:${c.c}">
+    <div class="topo2"><div class="sinal ${vivo?'vivo':''}">${c.ic}</div>
+      <div class="tt"><b>${c.l}</b><small>${textoAder(t)}</small></div>
+      ${a.varp!=null?`<span class="pct">${a.tipo==='ZERADA'?'0':fmtVar(a.varp)}</span>`:''}</div>
+    ${regua}${(t.serie||[]).length>1?pulsoSVG(t,300,34,false):''}</div>`;
+}
+function renderLista(){
+  const l=filtradas(),g=document.getElementById('lista');
+  if(!l.length){g.innerHTML='<div class="vazio">🔭 Nenhuma base encontrada com esses filtros.</div>';return}
+  g.innerHTML=l.map((t,i)=>{const fres=t.horas==null?0:Math.max(4,100-t.horas/48*100),a=avaliar(t);
+    return`<article class="tab ${a.cfg.alerta?'anom':''}" style="--cor:${COR[t.status]};--acor:${a.cfg.c};animation-delay:${Math.min(i*35,600)}ms" onclick="abrirRaioX('${esc(t.tabela)}')">
+      <div class="cab"><div><div class="nome">${esc(t.tabela)}</div><div class="esquema">${esc(t.schema)}</div></div>
+      <span class="status">● ${ROTULO[t.status]}</span></div>
+      <div class="meta">
+        <div>Última carga<b>${fmtData(t.ultima_carga)}</b></div>
+        <div>Tempo sem carga<b style="color:${COR[t.status]}">${fmtHoras(t.horas)}</b></div>
+        <div>Operação<b style="font-size:12px">${esc(t.operacao||'—')}</b></div>
+        <div>Linhas na carga<b ${a.cfg.alerta?`style="color:${a.cfg.c}"`:''}>${fmtNum(t.linhas)}</b></div>
+      </div>
+      ${blocoAderencia(t)}
+      <div class="frescor"><i style="width:${fres}%"></i></div>
+      <span class="selo">${esc(t.camada||'')}</span></article>`}).join('');
+}
+
+/* RAIO-X */
+function abrirRaioX(nome){
+  const t=T.find(x=>x.tabela===nome);if(!t)return;
+  const a=avaliar(t),full=`${DADOS.catalogo}.${t.schema}.${t.tabela}`;
+  document.getElementById('modal').innerHTML=`
+    <div class="mc"><div><span class="status" style="--cor:${COR[t.status]}">● ${ROTULO[t.status]}</span>
+      <span class="status" style="--cor:${a.cfg.c};margin-left:6px">${a.cfg.ic} ${a.cfg.l}</span>
+      <h2>🩻 ${esc(t.tabela)}</h2><div class="esquema">${esc(full)}</div></div>
+      <button class="fechar" onclick="fecharRaioX()">✕</button></div>
+    <div class="diag" style="--sc:${a.cfg.c}">${diagnostico(t)}</div>
+    <div class="kv">
+      <div>Recebido<b style="color:${a.cfg.c}">${fmtNum(a.atual)}</b></div>
+      <div>Média<b>${a.media?fmtNum(Math.round(a.media)):'—'}</b></div>
+      <div>Faixa normal<b style="font-size:13px">${a.media?fmtCurto(Math.max(0,a.media-2*a.dp))+' – '+fmtCurto(a.media+2*a.dp):'—'}</b></div>
+      <div>Desvio<b style="color:${a.cfg.c}">${fmtVar(a.varp)}</b></div>
+    </div>
+    <div class="grafico">${pulsoSVG(t,700,220,true)}
+      <div class="leg"><span><i style="background:rgba(167,139,250,.6)"></i>Cargas anteriores</span><span><i style="background:${a.cfg.c}"></i>Última carga</span>
+      <span><i style="background:rgba(52,211,153,.3)"></i>Faixa normal (média ± 2 desvios)</span><span><i style="border-top:2px dashed #a78bfa;height:0"></i>Média</span></div></div>
+    <div class="kv" style="grid-template-columns:repeat(3,1fr)">
+      <div>Última carga<b style="font-size:14px">${fmtData(t.ultima_carga)}</b></div>
+      <div>Tempo sem carga<b style="font-size:14px;color:${COR[t.status]}">${fmtHoras(t.horas)}</b></div>
+      <div>Operação<b style="font-size:12px">${esc(t.operacao||'—')}</b></div>
+    </div>
+    <div class="sql" title="Clique para copiar" onclick="copiar(this.textContent)">DESCRIBE HISTORY ${esc(full)} LIMIT 20;</div>`;
+  document.getElementById('modalFundo').classList.add('ver');
+}
+function fecharRaioX(){document.getElementById('modalFundo').classList.remove('ver')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharRaioX()});
+
+function filtrarStatus(v){estado.status=v;marcarGrupo('grpStatus',v);renderLista();document.getElementById('lista').scrollIntoView({behavior:'smooth',block:'start'})}
+function marcarGrupo(id,v){document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('ativo',b.dataset.v===v))}
+document.querySelectorAll('#grpStatus button').forEach(b=>b.onclick=()=>{estado.status=b.dataset.v;marcarGrupo('grpStatus',b.dataset.v);renderLista()});
+function copiar(txt){navigator.clipboard?.writeText(txt).then(()=>toast('📋 Copiado')).catch(()=>toast(txt))}
+
+function exportarCSV(){
+  const l=filtradas(),br=v=>v==null?'':String(typeof v==='number'?Math.round(v*10)/10:v).replace('.',',');
+  const linhas=['schema;tabela;status;ultima_carga;horas_sem_carga;operacao;linhas;media_linhas;desvio_pct;aderencia_volume']
+    .concat(l.map(t=>{const a=avaliar(t);return[t.schema,t.tabela,t.status,t.ultima_carga||'',br(t.horas),t.operacao||'',t.linhas??'',a.media?Math.round(a.media):'',br(a.varp),a.cfg.l].join(';')}));
+  const el=document.createElement('a');el.href=URL.createObjectURL(new Blob(['\ufeff'+linhas.join('\n')],{type:'text/csv;charset=utf-8'}));
+  el.download=`monitor_bases_${DADOS.gerado_em.slice(0,10)}.csv`;el.click();toast('⬇ CSV exportado');
+}
+
+function iniciarRecarga(){
+  let resta=RECARGA_MIN*60;const chip=document.getElementById('chipRecarga');
+  const tick=()=>{chip.textContent=`🔄 relendo em ${Math.floor(resta/60)}:${dd(resta%60)}`;if(resta--<=0)location.reload()};
+  tick();setInterval(tick,1000);
+}
+
+if(lerSessao())abrirApp();
+</script>
+</body>
+</html>
